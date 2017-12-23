@@ -11,68 +11,70 @@ fully_retrieved_dir = []
 
 def main():
     try:
-        site_dir_list = get_site_dir_list() #get the directory link from the site to cmpre incase there is new
-        if not os.path.isfile(os.getcwd()+"/retrieved_dir.dmd"):
-            with open(os.getcwd()+"/retrieved_dir.dmd", "w") as f:
+        if not os.path.isfile(os.getcwd()+"/retrieved_dir.dmd"): # checking if retrieved_dir.dmd file exists
+            with open(os.getcwd()+"/retrieved_dir.dmd", "w") as f: # else create it
                 pass
-        with open(os.getcwd()+"/retrieved_dir.dmd", "r") as f:
+        site_dir_list = get_site_dir_list() # get the directory link from the site
+        site_dir_list = remove_duplicate(site_dir_list) # this fucntion remove duplicate links
+        with open(os.getcwd()+"/retrieved_dir.dmd", "r") as f: #opening for reading
             dirs = f.readlines()
-        if dirs != []:
+        if dirs != []: # if the retrieved_dir.dmd file has been written to b4
             for dir in dirs:
                 dir = dir.strip("\n")
                 if dir in site_dir_list:
                     site_dir_list.remove(dir)
-        create_threads(site_dir_list[0])
+        create_threads(site_dir_list) # call create threads function
     except Exception:
         save()
+        #exit() # exit cleanly
 
-def create_threads(dir_links):
+def create_threads(dir_list):
     try:
-        print("called")
-        while dir_links != []:
-            threads_list = []
-            for _ in range(10):
-                if dir_links != []:
-                    dir_link = dir_links[-1]
-                    print dir_link
-                    new_thread = threading.Thread(target=get_links, args=(dir_link))
-                    threads_list.append(new_thread)
-                    print("trying to remove %s \n"%dir_links[-1])
-                    dir_links.remove(dir_links[-1])
-                    print("new length of list is %d \n"%len(dir_links))
-                else:
-                    print("Exhausted directory links")
-            if threads_list != []: #confirms that threads list is not empty
-                for thread in threads_list:
-                    thread.start()
-                for thread in threads_list:
-                    thread.join()
-            else:
-                print("Exhausted Threads list")
+        threads_list = []
+        while dir_list !=[]: # confirming we still have directory
+            print(len(dir_list))
+            c = -1 # counter for threads going backwards
+            print(c)
+            for i in range(5): # i want to be creating 5 threads at a time
+                print("looping")
+                if dir_list != []: # checking in case the remaining directories are less than five
+                    dir = dir_list[c]
+                    print(dir)
+                    new_thread = threading.Thread(target=get_links, args=(dir, )) #create the thread with a directory
+                    threads_list.append(new_thread) # sending the thread to the list
+                    c -= 1
+            for i in range(len(threads_list)):
+                print("starting thread %d"%i)
+                threads_list[i].start() # initiate threading
+                dir_list.remove(dir_list[-1])
+
+            for i in range(len(threads_list)):
+                threads_list[i].join()
+            print("Saving...")
             save()
+            print(len(dir_list))
     except Exception:
         save()
 
 
-def get_links(dir_link):
+def get_links(dir):
     try:
-        print("get links entered")
         with requests.Session() as s:
-            page = s.get(host+"/"+dir_link, headers=headers) #open the page of the current directory
-        if not os.path.isdir(os.getcwd()+"/"+dir_link): #check if the directory has not been created
-            os.mkdir(os.getcwd()+"/"+dir_link)  # create the directory
+            page = s.get(host+"/"+dir, headers=headers) #open the page of the current directory
+        if not os.path.isdir(os.getcwd()+"/"+dir): #check if the directory has not been created
+            os.mkdir(os.getcwd()+"/"+dir)  # create the directory
         files_link = get_files_link(page.content) # call the function that retrieve and returns the links
-        print("links obtained...")
+        files_link = remove_duplicate(files_link) # u get the point
         with requests.Session() as s:
             for link in files_link:
                 file_name = validate_filename(link)
-                if not os.path.isfile(os.getcwd()+"/"+dir_link+file_name):
-                    print("trying to retrieve %s from %s \n"%(file_name, dir_link))
-                    file_get = s.get(host+"/"+dir_link+link, headers=headers)
-                    with open(os.getcwd()+"/"+dir_link+file_name, "wb") as f:
+                if not os.path.isfile(os.getcwd()+"/"+dir+file_name):
+                    print("trying to retrieve %s from %s \n"%(file_name, dir))
+                    file_get = s.get(host+"/"+dir+link, headers=headers)
+                    with open(os.getcwd()+"/"+dir+file_name, "wb") as f:
                         f.write(file_get.content)
                     print("Retrieved %s \n"%file_name)
-            fully_retrieved_dir.append(dir_link)
+            fully_retrieved_dir.append(dir)
     except Exception:
         save()
 
@@ -97,6 +99,14 @@ def get_files_link(page):
         return links
     except Exception:
         save()
+
+
+def remove_duplicate(links):
+    unique_links = [] #this list does not contain duplicates
+    for link in links:
+        if link not in unique_links:
+            unique_links.append(link)
+    return unique_links
 
 
 def link_is_file(link):
@@ -137,8 +147,10 @@ def get_site_dir_list():
 def save():
     with open(os.getcwd()+"/retrieved_dir.dmd", "a") as f:
         if fully_retrieved_dir != []:
-            for dir in fully_retrieved_dir:
-                f.write(dir+"\n")
+            for i in range(len(fully_retrieved_dir)):
+                f.write(fully_retrieved_dir[i]+"\n")
+    for i in fully_retrieved_dir:
+        fully_retrieved_dir.remove(i)
 
 
 # performs simple checks if don't get this too, this code is not for u

@@ -71,7 +71,7 @@ def two(num):
 
 if __name__ == "__main__":
     main()
-"""
+
 from bs4 import BeautifulSoup as bs
 import os
 import threading
