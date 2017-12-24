@@ -2,14 +2,14 @@ from bs4 import BeautifulSoup as bs
 import os
 import threading
 import requests
+from time import sleep, ctime
 
 host = "http://index-of.co.uk/"
 headers = {"User-Agent": "Mozilla/5.0 (Windows NT 6.3; Win64; x64) \
 AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"} # spoofed user agent
 
 fully_retrieved_dir = []
-site_dir_list = get_site_dir_list() # get the directory link from the site
-site_dir_list = remove_duplicate(site_dir_list) # this fucntion remove duplicate links
+
 
 def main():
     try:
@@ -27,7 +27,7 @@ def main():
     except Exception:
         save()
         #exit() # exit cleanly
-def create_threads(dir_list):
+def create_threads():
     try:
         threads_list = []
         for i in range(6): # i want to be creating 5 threads at a time
@@ -37,6 +37,7 @@ def create_threads(dir_list):
 
         for i in range(len(threads_list)):
             threads_list[i].start() # initiate threading
+            sleep(1)
 
         for i in range(len(threads_list)):
             threads_list[i].join()
@@ -64,11 +65,10 @@ def get_links(dir):
             for link in files_link:
                 file_name = validate_filename(link)
                 if not os.path.isfile(os.getcwd()+"/"+dir+file_name):
-                    print("trying to retrieve %s from %s \n"%(file_name, dir))
                     file_get = s.get(host+"/"+dir+link, headers=headers)
                     with open(os.getcwd()+"/"+dir+file_name, "wb") as f:
                         f.write(file_get.content)
-                    print("Retrieved %s \n"%file_name)
+                    print("Retrieved %s \n"%(ctime(),))
             fully_retrieved_dir.append(dir)
     except Exception:
         save()
@@ -104,6 +104,20 @@ def remove_duplicate(links):
     return unique_links
 
 
+# performs simple checks if don't get this too, this code is not for u
+def is_link_dir(link):
+    try:
+        if link[:4] == "http":
+            return False
+        elif link[-1] != "/":
+            return False
+        elif not link[0].isupper():
+            return False
+        else:
+            return True
+    except Exception:
+        save()
+
 def link_is_file(link):
     try:
         if link[:4] == "http":
@@ -116,7 +130,14 @@ def link_is_file(link):
             return True
     except Exception:
         save()
-
+#this function is called to save the name of directories that have been retrieved
+def save():
+    with open(os.getcwd()+"/retrieved_dir.dmd", "a") as f:
+        if fully_retrieved_dir != []:
+            for i in range(len(fully_retrieved_dir)):
+                f.write(fully_retrieved_dir[i]+"\n")
+    for i in fully_retrieved_dir:
+        fully_retrieved_dir.remove(i)
 
 #this function retrieve the link of dirs from the site
 def get_site_dir_list():
@@ -138,30 +159,10 @@ def get_site_dir_list():
     except Exception:
         save()
 
-#this function is called to save the name of directories that have been retrieved
-def save():
-    with open(os.getcwd()+"/retrieved_dir.dmd", "a") as f:
-        if fully_retrieved_dir != []:
-            for i in range(len(fully_retrieved_dir)):
-                f.write(fully_retrieved_dir[i]+"\n")
-    for i in fully_retrieved_dir:
-        fully_retrieved_dir.remove(i)
+#placed here cos the function needs to be initialized
+site_dir_list = get_site_dir_list() # get the directory link from the site
+site_dir_list = remove_duplicate(site_dir_list) # this fucntion remove duplicate links
+main()
 
-
-# performs simple checks if don't get this too, this code is not for u
-def is_link_dir(link):
-    try:
-        if link[:4] == "http":
-            return False
-        elif link[-1] != "/":
-            return False
-        elif not link[0].isupper():
-            return False
-        else:
-            return True
-    except Exception:
-        save()
-
-
-if __name__=="__main__":
-    main()
+#if __name__=="__main__":
+#    main()
