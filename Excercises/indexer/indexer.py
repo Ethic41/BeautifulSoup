@@ -68,7 +68,7 @@ def get_links(dir):
                     file_get = s.get(host+"/"+dir+link, headers=headers)
                     with open(os.getcwd()+"/"+dir+file_name, "wb") as f:
                         f.write(file_get.content)
-                    print("Retrieved %s \n"%(ctime(),))
+                    print("Retrieved %s \n"%(file_name,))
             fully_retrieved_dir.append(dir)
     except Exception:
         save()
