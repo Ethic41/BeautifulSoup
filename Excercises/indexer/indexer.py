@@ -5,17 +5,17 @@ import requests
 
 host = "http://index-of.co.uk/"
 headers = {"User-Agent": "Mozilla/5.0 (Windows NT 6.3; Win64; x64) \
-AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"}
+AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36"} # spoofed user agent
 
 fully_retrieved_dir = []
+site_dir_list = get_site_dir_list() # get the directory link from the site
+site_dir_list = remove_duplicate(site_dir_list) # this fucntion remove duplicate links
 
 def main():
     try:
         if not os.path.isfile(os.getcwd()+"/retrieved_dir.dmd"): # checking if retrieved_dir.dmd file exists
             with open(os.getcwd()+"/retrieved_dir.dmd", "w") as f: # else create it
                 pass
-        site_dir_list = get_site_dir_list() # get the directory link from the site
-        site_dir_list = remove_duplicate(site_dir_list) # this fucntion remove duplicate links
         with open(os.getcwd()+"/retrieved_dir.dmd", "r") as f: #opening for reading
             dirs = f.readlines()
         if dirs != []: # if the retrieved_dir.dmd file has been written to b4
@@ -23,36 +23,31 @@ def main():
                 dir = dir.strip("\n")
                 if dir in site_dir_list:
                     site_dir_list.remove(dir)
-        create_threads(site_dir_list) # call create threads function
+        create_threads() # call create threads function
     except Exception:
         save()
         #exit() # exit cleanly
-
 def create_threads(dir_list):
     try:
         threads_list = []
-        while dir_list !=[]: # confirming we still have directory
-            print(len(dir_list))
-            c = -1 # counter for threads going backwards
-            print(c)
-            for i in range(5): # i want to be creating 5 threads at a time
-                print("looping")
-                if dir_list != []: # checking in case the remaining directories are less than five
-                    dir = dir_list[c]
-                    print(dir)
-                    new_thread = threading.Thread(target=get_links, args=(dir, )) #create the thread with a directory
-                    threads_list.append(new_thread) # sending the thread to the list
-                    c -= 1
-            for i in range(len(threads_list)):
-                print("starting thread %d"%i)
-                threads_list[i].start() # initiate threading
-                dir_list.remove(dir_list[-1])
+        for i in range(6): # i want to be creating 5 threads at a time
+            if site_dir_list != []: # checking in case the remaining directories are less than five
+                new_thread = threading.Thread(target=get_links, args=()) #create the thread with a directory
+                threads_list.append(new_thread) # sending the thread to the list
 
-            for i in range(len(threads_list)):
-                threads_list[i].join()
-            print("Saving...")
-            save()
-            print(len(dir_list))
+        for i in range(len(threads_list)):
+            threads_list[i].start() # initiate threading
+            #site_dir_list.remove(site_dir_list[-1])
+
+        for i in range(len(threads_list)):
+            threads_list[i].join()
+    except Exception:
+        save()
+
+def get_links():
+    try:
+        while dir_list !=[]: # confirming we still have directory
+            
     except Exception:
         save()
 
