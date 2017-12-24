@@ -30,36 +30,16 @@ def main():
 def create_threads(dir_list):
     try:
         threads_list = []
-<<<<<<< HEAD
         for i in range(6): # i want to be creating 5 threads at a time
             if site_dir_list != []: # checking in case the remaining directories are less than five
-                new_thread = threading.Thread(target=get_links, args=()) #create the thread with a directory
+                new_thread = threading.Thread(target=start_job, args=()) #create the thread with a directory
                 threads_list.append(new_thread) # sending the thread to the list
 
         for i in range(len(threads_list)):
             threads_list[i].start() # initiate threading
-            #site_dir_list.remove(site_dir_list[-1])
 
         for i in range(len(threads_list)):
             threads_list[i].join()
-    except Exception:
-        save()
-
-def get_links():
-    try:
-        while dir_list !=[]: # confirming we still have directory
-            
-=======
-            for i in range(5): # i want to be creating 5 threads at a time
-                new_thread = threading.Thread(target=start_job(), args=()) #create the thread with a directory
-                threads_list.append(new_thread) # sending the thread to the list
-
-            for i in range(len(threads_list)):
-                threads_list[i].start() # initiate threading
-
-            for i in range(len(threads_list)):
-                threads_list[i].join()
->>>>>>> 3367398a89605f9adb735ac5656b33af6cdc82f7
     except Exception:
         save()
 
